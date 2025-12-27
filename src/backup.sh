@@ -1,6 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 
+# -------- LOCK --------
+
+LOCK_FILE=/tmp/my.lock
+PID_FILE=/tmp/my.lock.pid
+exec 200>"$LOCK_FILE"
+flock -n 200 || {
+    pid=$(cat "$PID_FILE" 2>/dev/null)
+    echo "Script already running${pid:+ (PID $pid)}"
+    exit 1
+}
+echo $$ > "$PID_FILE"
+trap 'rm -f "$PID_FILE"' EXIT
+
 # -------- CONFIGURATION --------
 
 DATA=""
